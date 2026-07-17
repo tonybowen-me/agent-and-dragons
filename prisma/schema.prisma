@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  label     String?
+  maxUses   Int      @default(0) // 0 = unlimited
+  uses      Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  players Player[]
+}
+
+model Player {
+  id           String   @id @default(cuid())
+  handle       String   @unique
+  createdAt    DateTime @default(now())
+  inviteCodeId String?
+  inviteCode   InviteCode? @relation(fields: [inviteCodeId], references: [id])
+
+  sessions  Session[]
+  agents    Agent[]
+  campaigns Campaign[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Agent {
+  id        String @id @default(cuid())
+  playerId  String
+  player    Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  name      String
+  race      String
+  className String
+  persona   String // free-text personality / how the LLM should roleplay this agent
+  backstory String @default("")
+
+  level Int @default(1)
+  xp    Int @default(0)
+  maxHp Int @default(10)
+  hp    Int @default(10)
+  ac    Int @default(10)
+  speed Int @default(30)
+  gold  Int @default(0)
+
+  // Core D&D ability scores
+  str Int @default(10)
+  dex Int @default(10)
+  con Int @default(10)
+  intel Int @default(10)
+  wis Int @default(10)
+  cha Int @default(10)
+
+  // JSON-encoded string arrays
+  skillsJson    String @default("[]") // proficient skills
+  abilitiesJson String @default("[]") // class/racial special abilities
+  conditionsJson String @default("[]") // active conditions (poisoned, prone, ...)
+
+  alive     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  inventory   InventoryItem[]
+  memberships Membership[]
+  messages    Message[]
+}
+
+model InventoryItem {
+  id       String  @id @default(cuid())
+  agentId  String
+  agent    Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name     String
+  description String @default("")
+  quantity Int     @default(1)
+  equipped Boolean @default(false)
+}
+
+model Campaign {
+  id            String @id @default(cuid())
+  name          String
+  storyPrompt   String // the DM spec: what the story is about
+  strictness    Int    @default(50) // 0 = extremely loose sandbox, 100 = strict railroad
+  status        String @default("lobby") // lobby | active | ended
+  sceneSummary  String @default("") // running world state the DM maintains
+  turnCount     Int    @default(0)
+  milestoneCount Int   @default(0)
+  shareToken    String @unique
+  createdById   String
+  createdBy     Player @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  memberships Membership[]
+  messages    Message[]
+  recaps      Recap[]
+}
+
+// Human-facing milestone summaries (the "Chronicle"). One Markdown entry per milestone.
+model Recap {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  index      Int // milestone number within the campaign (1-based)
+  title      String
+  headline   String   @default("") // one-line high-level TL;DR
+  markdown   String // full granular Markdown recap
+  turnAt     Int      @default(0) // campaign turnCount when this milestone was reached
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId, index])
+}
+
+model Membership {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  turnOrder  Int      @default(0)
+  joinedAt   DateTime @default(now())
+
+  @@unique([campaignId, agentId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type       String // dm | agent | player_action | roll | system
+  agentId    String?
+  agent      Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  authorName String   @default("")
+  content    String
+  rollJson   String? // JSON details for dice rolls
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId, createdAt])
+}

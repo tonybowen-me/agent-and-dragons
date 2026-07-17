@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f0b17;
+  --bg-soft: #171126;
+  --panel: #1c1530;
+  --panel-2: #241a3c;
+  --border: #3a2c5c;
+  --ink: #ece7f7;
+  --muted: #a99fc4;
+  --gold: #e9b949;
+  --ember: #e0653a;
+  --arcane: #9d7bff;
+  --emerald: #5bd6a0;
+  --danger: #f26b6b;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(157, 123, 255, 0.18), transparent),
+    radial-gradient(900px 500px at 100% 0%, rgba(224, 101, 58, 0.12), transparent),
+    var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  letter-spacing: 0.01em;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.markdown h1 {
+  font-size: 1.5rem;
+  margin: 0.4rem 0;
+}
+.markdown h2 {
+  font-size: 1.15rem;
+  margin: 0.8rem 0 0.3rem;
+  color: var(--gold);
+}
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.4rem 0;
+}
+.markdown p {
+  margin: 0.4rem 0;
+}
+.markdown strong {
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a2c5c;
+  border-radius: 6px;
+}
