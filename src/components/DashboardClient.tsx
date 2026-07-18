@@ -6,6 +6,7 @@ import { apiGet } from "@/lib/clientApi";
 import type { CampaignSummary, MeData, PublicAgent } from "@/lib/types";
 import { AgentBuilder } from "@/components/AgentBuilder";
 import { CampaignCreator } from "@/components/CampaignCreator";
+import { ApiKeysPanel } from "@/components/ApiKeysPanel";
 import { Badge, Button, Panel } from "@/components/ui";
 
 function statusColor(status: string): string {
@@ -190,6 +191,10 @@ export function DashboardClient() {
             )}
           </div>
         </section>
+      </div>
+
+      <div className="mt-8">
+        <ApiKeysPanel />
       </div>
     </div>
   );

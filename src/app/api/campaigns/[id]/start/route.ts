@@ -1,6 +1,5 @@
-import { prisma } from "@/lib/db";
-import { withPlayer, json, error } from "@/lib/api";
-import { startCampaign } from "@/lib/engine";
+import { withPlayer, json, fromActionError } from "@/lib/api";
+import { startCampaignAsPlayer } from "@/lib/actions";
 
 export async function POST(
   _req: Request,
@@ -10,17 +9,9 @@ export async function POST(
   if ("response" in guard) return guard.response;
   const { id } = await params;
 
-  const campaign = await prisma.campaign.findUnique({ where: { id } });
-  if (!campaign) return error("Campaign not found.", 404);
-  if (campaign.createdById !== guard.player.id)
-    return error("Only the campaign creator can begin the adventure.", 403);
-
   try {
-    await startCampaign(id);
+    return json(await startCampaignAsPlayer(guard.player.id, id));
   } catch (e) {
-    if (e instanceof Error && e.message === "NO_MEMBERS")
-      return error("Add at least one agent before starting.");
-    throw e;
+    return fromActionError(e);
   }
-  return json({ ok: true });
 }

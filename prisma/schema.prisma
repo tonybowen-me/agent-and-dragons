@@ -27,8 +27,23 @@ model Player {
   inviteCode   InviteCode? @relation(fields: [inviteCodeId], references: [id])
 
   sessions  Session[]
+  apiTokens ApiToken[]
   agents    Agent[]
   campaigns Campaign[]
+}
+
+// Long-lived API keys for programmatic access (e.g. the MCP server). Let an
+// external agent play without a browser session.
+model ApiToken {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  playerId   String
+  player     Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  label      String    @default("")
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([playerId])
 }
 
 model Session {

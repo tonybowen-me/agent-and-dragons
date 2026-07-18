@@ -11,13 +11,16 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
+    "mcp:smoke": "tsx scripts/mcp-smoke.mts",
     "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@prisma/client": "^6.2.1",
+    "mcp-handler": "^1.1.0",
     "next": "^15.5.20",
     "openai": "^4.83.0",
     "react": "^19.0.0",

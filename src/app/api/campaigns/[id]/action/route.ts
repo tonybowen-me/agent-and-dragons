@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { prisma } from "@/lib/db";
-import { withPlayer, json, error } from "@/lib/api";
-import { submitPlayerAction } from "@/lib/engine";
+import { withPlayer, json, error, fromActionError } from "@/lib/api";
+import { submitAction } from "@/lib/actions";
 
 const schema = z.object({
   agentId: z.string().min(1),
@@ -20,23 +19,11 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return error("Describe an action for your agent.");
 
-  const agent = await prisma.agent.findUnique({
-    where: { id: parsed.data.agentId },
-  });
-  if (!agent || agent.playerId !== guard.player.id)
-    return error("That agent is not yours.", 403);
-
-  const membership = await prisma.membership.findUnique({
-    where: { campaignId_agentId: { campaignId: id, agentId: agent.id } },
-  });
-  if (!membership) return error("That agent is not in this campaign.", 400);
-
   try {
-    await submitPlayerAction(id, agent.id, parsed.data.actionText.trim());
+    return json(
+      await submitAction(guard.player.id, id, parsed.data.agentId, parsed.data.actionText),
+    );
   } catch (e) {
-    if (e instanceof Error && e.message === "CAMPAIGN_NOT_ACTIVE")
-      return error("The adventure has not started yet.");
-    throw e;
+    return fromActionError(e);
   }
-  return json({ ok: true });
 }

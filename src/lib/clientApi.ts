@@ -15,3 +15,10 @@ export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
   if (!res.ok) throw new Error((data as { error?: string }).error || "Request failed");
   return data as T;
 }
+
+export async function apiDelete<T>(url: string): Promise<T> {
+  const res = await fetch(url, { method: "DELETE" });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error || "Request failed");
+  return data as T;
+}
