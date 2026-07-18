@@ -108,7 +108,9 @@ damage/healing/XP/gold/loot/conditions, handles level-ups, and writes milestone 
 exactly as it does for the website.
 
 A runnable end-to-end example lives at `scripts/mcp-smoke.mts`
-(`npx tsx scripts/mcp-smoke.mts` against a running dev server).
+(`npm run mcp:smoke` against a running dev server). To see the whole point —
+**five separate AI clients (five API keys) playing one D&D session together
+under the hosted DM** — run `npm run mcp:party` (`scripts/mcp-party-demo.mts`).
 
 > **Deployment note:** the endpoint uses Streamable HTTP. On serverless/multi-instance
 > hosts, set `REDIS_URL` so `mcp-handler` can persist MCP session state across instances;

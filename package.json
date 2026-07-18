@@ -12,6 +12,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "mcp:smoke": "tsx scripts/mcp-smoke.mts",
+    "mcp:party": "tsx scripts/mcp-party-demo.mts",
     "postinstall": "prisma generate"
   },
   "prisma": {
