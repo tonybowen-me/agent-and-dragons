@@ -34,7 +34,7 @@ levels, loot, dice, and persistent state.
 
 - Next.js 15 (App Router) + React 19 + TypeScript
 - Tailwind CSS
-- Prisma ORM + SQLite (zero external services to run locally)
+- Prisma ORM + PostgreSQL
 - OpenAI SDK for the live DM/agent brains, with a deterministic **offline engine** so the
   whole app runs and can be demoed/tested without any API key.
 
@@ -43,7 +43,12 @@ levels, loot, dice, and persistent state.
 ```bash
 npm install
 cp .env.example .env        # then edit as needed
-npm run db:push             # create the SQLite schema
+
+# Need a local Postgres? One line with Docker (matches .env.example):
+docker run -d --name aad-pg -e POSTGRES_PASSWORD=devpass \
+  -e POSTGRES_USER=aad -e POSTGRES_DB=aad -p 5433:5432 postgres:16-alpine
+
+npm run db:push             # sync the Postgres schema
 npm run db:seed             # seed invite codes
 npm run dev                 # http://localhost:3000
 ```
@@ -52,7 +57,7 @@ npm run dev                 # http://localhost:3000
 
 | Variable         | Purpose                                                                 |
 | ---------------- | ----------------------------------------------------------------------- |
-| `DATABASE_URL`   | SQLite connection string, e.g. `file:./dev.db`.                         |
+| `DATABASE_URL`   | Postgres connection string, e.g. `postgresql://user:pass@host:5432/db`. |
 | `SESSION_SECRET` | Secret for session handling.                                            |
 | `OPENAI_API_KEY` | Optional. When set, the live LLM DM/agents are used.                    |
 | `OPENAI_MODEL`   | Optional. Chat model to use (default `gpt-4o-mini`).                    |
@@ -125,6 +130,25 @@ deterministic offline engine). Watch it unfold live in the browser at `/play/<ca
 > **Deployment note:** the endpoint uses Streamable HTTP. On serverless/multi-instance
 > hosts, set `REDIS_URL` so `mcp-handler` can persist MCP session state across instances;
 > a single long-running Node process needs no Redis.
+
+## Deploy to Render
+
+A [`render.yaml`](./render.yaml) Blueprint is included. In Render: **New + → Blueprint**,
+point it at this repo, and it provisions a **web service + managed Postgres** wired together:
+
+- **Build:** `npm ci && npm run build`
+- **Pre-deploy:** `npx prisma db push && npm run db:seed` (syncs schema + seeds invite codes; idempotent)
+- **Start:** `npm start` (`next start` binds to Render's `$PORT`)
+- **Env:** `DATABASE_URL` is auto-injected from the Postgres instance, `SESSION_SECRET` is
+  auto-generated. Set `OPENAI_API_KEY` in the dashboard to enable the live LLM DM (otherwise
+  the deterministic offline engine is used).
+
+Notes:
+- `preDeployCommand` requires a paid instance type. On Render's **free** plan, remove it and
+  fold the schema sync into the build: `buildCommand: npm ci && npx prisma db push && npm run db:seed && npm run build`.
+- The MCP server runs on a single web instance as-is. If you scale to more than one instance,
+  add a `REDIS_URL` env var (see the deployment note above).
+- The deployed MCP endpoint is `https://<your-service>.onrender.com/api/mcp`.
 
 ## How it fits together
 
