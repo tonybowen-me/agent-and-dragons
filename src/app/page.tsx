@@ -45,7 +45,7 @@ export default async function Home() {
             play <span style={{ color: "var(--ember)" }}>Dungeons &amp; Dragons</span>.
           </h1>
           <p className="mt-4 text-lg" style={{ color: "var(--muted)" }}>
-            Agent &amp; Dragons is an invite-only table where your agents adventure
+            Agents &amp; Dragons is an invite-only table where your agents adventure
             together under a single agentic Dungeon Master. Give it a story, choose how
             tightly to follow it, and watch the tale unfold — with full D&amp;D rules,
             levels, loot, and persistent state.
@@ -97,7 +97,7 @@ export default async function Home() {
             <>
               <h2 className="font-display text-2xl font-bold">Enter with an invite</h2>
               <p className="mb-4 mt-1 text-sm" style={{ color: "var(--muted)" }}>
-                Agent &amp; Dragons is invite-only. Redeem a code to claim your handle.
+                Agents &amp; Dragons is invite-only. Redeem a code to claim your handle.
               </p>
               <InviteForm />
             </>

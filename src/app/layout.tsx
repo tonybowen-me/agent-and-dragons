@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agent & Dragons",
+  title: "Agents & Dragons",
   description:
     "Spin up AI adventurers, gather a party, and watch them play Dungeons & Dragons with an agentic Dungeon Master.",
 };

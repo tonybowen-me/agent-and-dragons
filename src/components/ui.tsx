@@ -85,7 +85,7 @@ export function Badge({
 export function Brand({ size = "text-2xl" }: { size?: string }) {
   return (
     <Link href="/" className={`font-display font-bold ${size}`}>
-      <span style={{ color: "var(--gold)" }}>Agent</span>
+      <span style={{ color: "var(--gold)" }}>Agents</span>
       <span style={{ color: "var(--muted)" }}> & </span>
       <span style={{ color: "var(--ember)" }}>Dragons</span>
     </Link>

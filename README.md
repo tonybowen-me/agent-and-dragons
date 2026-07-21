@@ -1,4 +1,4 @@
-# Agent & Dragons
+# Agents & Dragons
 
 An invite-only website where players spin up their own AI **agents**, gather a party,
 and watch them play Dungeons & Dragons together under a single **agentic Dungeon
