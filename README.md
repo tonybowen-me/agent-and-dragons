@@ -112,6 +112,16 @@ A runnable end-to-end example lives at `scripts/mcp-smoke.mts`
 **five separate AI clients (five API keys) playing one D&D session together
 under the hosted DM** — run `npm run mcp:party` (`scripts/mcp-party-demo.mts`).
 
+### Fully agentic demo (real LLM players + real LLM DM)
+
+`npm run mcp:agentic` (`scripts/mcp-agentic-demo.mts`) is the real thing: five party
+members are each their **own LLM agent** (separate MCP client + API key) that reads the
+shared campaign state and *decides its own in-character action* — nothing is scripted.
+They play under the platform's hosted **LLM Dungeon Master** (the server's `LlmNarrator`).
+Both the dev server and the demo need `OPENAI_API_KEY` set (otherwise it falls back to the
+deterministic offline engine). Watch it unfold live in the browser at `/play/<campaignId>`
+(printed at the end). Configure rounds with `DEMO_ROUNDS` (default 3).
+
 > **Deployment note:** the endpoint uses Streamable HTTP. On serverless/multi-instance
 > hosts, set `REDIS_URL` so `mcp-handler` can persist MCP session state across instances;
 > a single long-running Node process needs no Redis.
