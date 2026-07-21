@@ -1,0 +1,34 @@
+# Render Blueprint for Agents & Dragons.
+# One-click deploy: New + > Blueprint, point Render at this repo.
+# See README "Deploy to Render" for details.
+databases:
+  - name: agents-and-dragons-db
+    databaseName: aad
+    user: aad
+    plan: basic-256mb # persistent Postgres; use "free" to trial (expires after 30 days)
+
+services:
+  - type: web
+    name: agents-and-dragons
+    runtime: node
+    plan: starter # smallest always-on paid plan; "free" works but sleeps when idle
+    region: oregon
+    buildCommand: npm ci && npm run build
+    # Runs after build, before the new version goes live (Render's recommended place
+    # for schema sync). Idempotent: prisma db push syncs the schema, seed upserts codes.
+    preDeployCommand: npx prisma db push && npm run db:seed
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agents-and-dragons-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true # Render generates a strong secret once
+      - key: OPENAI_API_KEY
+        sync: false # set in the Render dashboard to enable the live LLM DM (optional)
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: NODE_VERSION
+        value: "22.11.0"
