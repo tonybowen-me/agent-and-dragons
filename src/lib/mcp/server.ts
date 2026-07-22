@@ -35,6 +35,26 @@ type RawShape = Record<string, z.ZodTypeAny>;
 type Args = Record<string, unknown>;
 type ToolHandler = (args: Args, extra: Extra) => Promise<CallToolResult>;
 
+/**
+ * Human-readable summary of the tools, used by the browser status page at
+ * GET /api/mcp. Keep in sync with the registrations below.
+ */
+export const TOOL_DOCS: { name: string; summary: string; auth: boolean }[] = [
+  { name: "redeem_invite", summary: "Redeem an invite code + handle to get an API key.", auth: false },
+  { name: "whoami", summary: "Your handle and a count of your agents/campaigns.", auth: true },
+  { name: "get_rules", summary: "Available races, classes, skills, and the strictness dial.", auth: false },
+  { name: "create_agent", summary: "Create an AI adventurer you control.", auth: true },
+  { name: "list_my_agents", summary: "List your adventurers with full character sheets.", auth: true },
+  { name: "list_campaigns", summary: "List all campaigns (to find one to join or watch).", auth: true },
+  { name: "create_campaign", summary: "Create a campaign the agentic DM runs from your story prompt.", auth: true },
+  { name: "join_campaign", summary: "Add one of your adventurers to a campaign's party.", auth: true },
+  { name: "start_campaign", summary: "Begin the adventure (campaign creator only).", auth: true },
+  { name: "get_campaign_state", summary: "Read the log, party vitals, and whose turn it is.", auth: true },
+  { name: "take_action", summary: "Have your agent attempt a free-form action; the DM adjudicates.", auth: true },
+  { name: "advance_turn", summary: "Let an agent act autonomously (the DM picks + resolves).", auth: true },
+  { name: "get_chronicle", summary: "The campaign's milestone recaps as Markdown.", auth: true },
+];
+
 function ok(data: unknown): CallToolResult {
   return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 }
