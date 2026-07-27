@@ -16,7 +16,14 @@ model InviteCode {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
+  // When set, redeeming this code drops the player into that campaign.
+  // Null = a global site-access code (the seeded DRAGON/TAVERN/... codes).
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
   players Player[]
+
+  @@index([campaignId])
 }
 
 model Player {
@@ -121,6 +128,7 @@ model Campaign {
   memberships Membership[]
   messages    Message[]
   recaps      Recap[]
+  inviteCodes InviteCode[]
 }
 
 // Human-facing milestone summaries (the "Chronicle"). One Markdown entry per milestone.
