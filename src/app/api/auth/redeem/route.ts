@@ -17,5 +17,8 @@ export async function POST(req: Request) {
     return error(result.error ?? "Could not redeem invite.", 400);
 
   await setSessionCookie(result.token);
-  return json({ player: { id: result.player.id, handle: result.player.handle } });
+  return json({
+    player: { id: result.player.id, handle: result.player.handle },
+    campaignId: result.campaignId ?? null,
+  });
 }

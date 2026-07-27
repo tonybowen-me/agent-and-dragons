@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/clientApi";
 import { Button, Field, inputClass, inputStyle } from "@/components/ui";
@@ -12,13 +12,22 @@ export function InviteForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Prefill the code when arriving from a shared campaign invite link (/?code=...).
+  useEffect(() => {
+    const shared = new URLSearchParams(window.location.search).get("code");
+    if (shared) setCode(shared);
+  }, []);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await apiPost("/api/auth/redeem", { code, handle });
-      router.push("/dashboard");
+      const res = await apiPost<{ campaignId: string | null }>("/api/auth/redeem", {
+        code,
+        handle,
+      });
+      router.push(res.campaignId ? `/play/${res.campaignId}` : "/dashboard");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

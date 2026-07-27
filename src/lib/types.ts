@@ -106,3 +106,13 @@ export interface MeData {
   player: { id: string; handle: string };
   agents: PublicAgent[];
 }
+
+export interface CampaignInvite {
+  id: string;
+  code: string;
+  label: string | null;
+  maxUses: number;
+  uses: number;
+  active: boolean;
+  createdAt: string;
+}

@@ -234,6 +234,11 @@ export function PlayClient({ campaignId }: { campaignId: string }) {
           <Button variant="ghost" onClick={copyShare}>
             {copied ? "Link copied!" : "Copy share link"}
           </Button>
+          {viewer.isOwner ? (
+            <Link href={`/campaign/${campaignId}`}>
+              <Button variant="ghost">DM console</Button>
+            </Link>
+          ) : null}
           <Link href="/dashboard">
             <Button variant="ghost">Table</Button>
           </Link>
@@ -291,9 +296,17 @@ export function PlayClient({ campaignId }: { campaignId: string }) {
                 </div>
               ) : (
                 <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
-                  {myMembers.length
-                    ? "All your adventurers are in the party."
-                    : "You have no free adventurers — create one on your table."}
+                  {myMembers.length ? (
+                    "All your adventurers are in the party."
+                  ) : (
+                    <>
+                      You have no free adventurers yet.{" "}
+                      <Link href="/dashboard" className="underline">
+                        Build one on your table
+                      </Link>{" "}
+                      to join.
+                    </>
+                  )}
                 </p>
               )}
               {viewer.isOwner ? (

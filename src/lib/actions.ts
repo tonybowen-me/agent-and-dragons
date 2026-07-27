@@ -55,6 +55,7 @@ export async function redeemInviteForApiToken(code: string, handle: string) {
   return {
     player: { id: res.player.id, handle: res.player.handle },
     apiKey: key.token,
+    campaignId: res.campaignId ?? null,
   };
 }
 
@@ -159,6 +160,162 @@ export async function createCampaign(playerId: string, input: CreateCampaignInpu
       createdById: playerId,
     },
   });
+}
+
+/** Load a campaign and assert the given player owns (created) it. */
+async function requireOwnedCampaign(playerId: string, campaignId: string) {
+  const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+  if (!campaign) throw new ActionError("NOT_FOUND", "Campaign not found.");
+  if (campaign.createdById !== playerId)
+    throw new ActionError("FORBIDDEN", "Only the campaign creator can manage this campaign.");
+  return campaign;
+}
+
+export interface UpdateCampaignInput {
+  name?: string;
+  storyPrompt?: string;
+  strictness?: number;
+}
+
+/** Owner-only: edit the DM spec (name, story prompt, strictness dial). */
+export async function updateCampaign(
+  playerId: string,
+  campaignId: string,
+  input: UpdateCampaignInput,
+) {
+  await requireOwnedCampaign(playerId, campaignId);
+
+  const data: { name?: string; storyPrompt?: string; strictness?: number } = {};
+  if (input.name !== undefined) {
+    const name = input.name.trim();
+    if (!name || name.length > 80)
+      throw new ActionError("BAD_REQUEST", "Campaign name is required (max 80 chars).");
+    data.name = name;
+  }
+  if (input.storyPrompt !== undefined) {
+    const storyPrompt = input.storyPrompt.trim();
+    if (!storyPrompt) throw new ActionError("BAD_REQUEST", "A story prompt is required.");
+    data.storyPrompt = storyPrompt;
+  }
+  if (input.strictness !== undefined) {
+    let strictness = input.strictness;
+    if (!Number.isFinite(strictness)) strictness = 50;
+    data.strictness = Math.max(0, Math.min(100, Math.round(strictness)));
+  }
+
+  const updated = await prisma.campaign.update({ where: { id: campaignId }, data });
+  return {
+    id: updated.id,
+    name: updated.name,
+    storyPrompt: updated.storyPrompt,
+    strictness: updated.strictness,
+    strictnessLabel: strictnessLabel(updated.strictness),
+    status: updated.status,
+  };
+}
+
+export interface CampaignInviteSummary {
+  id: string;
+  code: string;
+  label: string | null;
+  maxUses: number;
+  uses: number;
+  active: boolean;
+  createdAt: string;
+}
+
+function serializeInvite(i: {
+  id: string;
+  code: string;
+  label: string | null;
+  maxUses: number;
+  uses: number;
+  active: boolean;
+  createdAt: Date;
+}): CampaignInviteSummary {
+  return {
+    id: i.id,
+    code: i.code,
+    label: i.label,
+    maxUses: i.maxUses,
+    uses: i.uses,
+    active: i.active,
+    createdAt: i.createdAt.toISOString(),
+  };
+}
+
+function slugifyCode(name: string): string {
+  const base = name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 12);
+  return base || "QUEST";
+}
+
+/** Generate a campaign-scoped invite code that is not already taken. */
+async function uniqueInviteCode(name: string): Promise<string> {
+  const slug = slugifyCode(name);
+  for (let i = 0; i < 12; i++) {
+    const code = `${slug}-${randomBytes(2).toString("hex").toUpperCase()}`;
+    const existing = await prisma.inviteCode.findUnique({ where: { code } });
+    if (!existing) return code;
+  }
+  return `AAD-${randomBytes(5).toString("hex").toUpperCase()}`;
+}
+
+export interface CreateCampaignInviteInput {
+  label?: string;
+  maxUses?: number;
+}
+
+/** Owner-only: mint a new invite code tied to this campaign. */
+export async function createCampaignInvite(
+  playerId: string,
+  campaignId: string,
+  input: CreateCampaignInviteInput,
+) {
+  const campaign = await requireOwnedCampaign(playerId, campaignId);
+
+  let maxUses = input.maxUses ?? 0;
+  if (!Number.isFinite(maxUses) || maxUses < 0) maxUses = 0;
+  maxUses = Math.min(1000, Math.round(maxUses));
+
+  const label = (input.label ?? "").trim().slice(0, 60) || campaign.name;
+  const code = await uniqueInviteCode(campaign.name);
+
+  const invite = await prisma.inviteCode.create({
+    data: { code, label, maxUses, campaignId },
+  });
+  return serializeInvite(invite);
+}
+
+/** Owner-only: list invite codes for this campaign. */
+export async function listCampaignInvites(playerId: string, campaignId: string) {
+  await requireOwnedCampaign(playerId, campaignId);
+  const invites = await prisma.inviteCode.findMany({
+    where: { campaignId },
+    orderBy: { createdAt: "desc" },
+  });
+  return invites.map(serializeInvite);
+}
+
+/** Owner-only: activate or revoke (deactivate) a campaign invite code. */
+export async function setCampaignInviteActive(
+  playerId: string,
+  campaignId: string,
+  inviteId: string,
+  active: boolean,
+) {
+  await requireOwnedCampaign(playerId, campaignId);
+  const invite = await prisma.inviteCode.findUnique({ where: { id: inviteId } });
+  if (!invite || invite.campaignId !== campaignId)
+    throw new ActionError("NOT_FOUND", "Invite code not found for this campaign.");
+  const updated = await prisma.inviteCode.update({
+    where: { id: inviteId },
+    data: { active },
+  });
+  return serializeInvite(updated);
 }
 
 export async function listCampaigns(playerId: string) {

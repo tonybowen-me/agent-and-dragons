@@ -174,11 +174,20 @@ export function DashboardClient() {
                         by @{c.createdBy} · {c.turnCount} turns · {c.recapCount} milestones
                       </div>
                     </div>
-                    <Link href={`/play/${c.id}`}>
-                      <Button variant="gold">
-                        {c.status === "active" ? "Watch" : "Open"}
-                      </Button>
-                    </Link>
+                    <div className="flex flex-col gap-2">
+                      <Link href={`/play/${c.id}`}>
+                        <Button variant="gold" className="w-full">
+                          {c.status === "active" ? "Watch" : "Open"}
+                        </Button>
+                      </Link>
+                      {c.isOwner ? (
+                        <Link href={`/campaign/${c.id}`}>
+                          <Button variant="ghost" className="w-full">
+                            Console
+                          </Button>
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
                 </Panel>
               ))

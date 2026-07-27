@@ -48,6 +48,9 @@ export interface RedeemResult {
   error?: string;
   player?: Player;
   token?: string;
+  // Set when the redeemed code is campaign-scoped: the player should be
+  // dropped into this campaign after redemption.
+  campaignId?: string | null;
 }
 
 /**
@@ -94,5 +97,5 @@ export async function redeemInvite(
   const token = newToken();
   await prisma.session.create({ data: { token, playerId: player.id } });
 
-  return { ok: true, player, token };
+  return { ok: true, player, token, campaignId: invite.campaignId };
 }
